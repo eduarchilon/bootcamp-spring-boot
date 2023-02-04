@@ -1,14 +1,12 @@
 package com.besysoft.bootcampspringboot.controller;
 
-
-import com.besysoft.bootcampspringboot.dominio.Pelicula;
 import com.besysoft.bootcampspringboot.dominio.Genero;
-import com.besysoft.bootcampspringboot.dominio.Personaje;
+import com.besysoft.bootcampspringboot.dominio.Pelicula;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.Month;
 import java.util.*;
 
 @RestController
@@ -22,34 +20,34 @@ public class PeliculaController {
     }
 
     @GetMapping()
-    public List<Pelicula> obtenerPeliculas() {
-        return this.listaPeliculas;
+    public ResponseEntity<List<Pelicula>> obtenerPeliculas() {
+        return new ResponseEntity<List<Pelicula>>(this.listaPeliculas, HttpStatus.ACCEPTED);
     }
 
     @GetMapping("/titulo/{titulo}")
-    public Pelicula buscarPeliculaPorTitulo(@PathVariable String titulo) {
+    public ResponseEntity<Pelicula> buscarPeliculaPorTitulo(@PathVariable String titulo) {
         for (Pelicula buscada : this.listaPeliculas) {
             if (buscada.getTitulo().equals(titulo)) {
-                return buscada;
+                return new ResponseEntity<Pelicula>(buscada, HttpStatus.ACCEPTED);
             }
         }
-        return null;
+        return new ResponseEntity<>(null, HttpStatus.ACCEPTED);
     }
 
     @GetMapping("/genero/{genero}")
-    public List<Pelicula> buscarPeliculasPorGenero(@PathVariable String genero) {
+    public ResponseEntity<List<Pelicula>> buscarPeliculasPorGenero(@PathVariable String genero) {
         List<Pelicula> listaPorGenero = new ArrayList<Pelicula>();
         for (Pelicula buscada : this.listaPeliculas) {
             if (buscada.getGenero().toString().equals(genero)) {
                 listaPorGenero.add(buscada);
             }
         }
-        return listaPorGenero;
+        return new ResponseEntity<List<Pelicula>>(listaPorGenero, HttpStatus.ACCEPTED);
     }
 
     @GetMapping("/fechas/")
-    public List<Pelicula> buscarPeliculasPorFecha(@RequestParam String desde,
-                                                  @RequestParam String hasta) {
+    public ResponseEntity<List<Pelicula>> buscarPeliculasPorFecha(@RequestParam String desde,
+                                                                  @RequestParam String hasta) {
         List<Pelicula> listaPeloculasPorFecha = new ArrayList<>();
         for (Pelicula buscada : this.listaPeliculas) {
             if (buscada.getFechaCreacion().isAfter(LocalDate.parse(desde))
@@ -58,12 +56,12 @@ public class PeliculaController {
                 listaPeloculasPorFecha.add(buscada);
             }
         }
-        return listaPeloculasPorFecha;
+        return new ResponseEntity<List<Pelicula>>(listaPeloculasPorFecha, HttpStatus.ACCEPTED);
     }
 
     @GetMapping("/calificacion/")
-    public List<Pelicula> buscarPeliculasPorCalificacion(@RequestParam Double desde,
-                                                         @RequestParam Double hasta) {
+    public ResponseEntity<List<Pelicula>> buscarPeliculasPorCalificacion(@RequestParam Double desde,
+                                                                         @RequestParam Double hasta) {
         List<Pelicula> listaPeloculasPorCalificacion = new ArrayList<>();
         for (Pelicula buscada : this.listaPeliculas) {
             if (buscada.getCalificacion() >= desde
@@ -72,6 +70,29 @@ public class PeliculaController {
                 listaPeloculasPorCalificacion.add(buscada);
             }
         }
-        return listaPeloculasPorCalificacion;
+        return new ResponseEntity<List<Pelicula>>(listaPeloculasPorCalificacion, HttpStatus.ACCEPTED);
+    }
+
+    @PostMapping()
+    public ResponseEntity<Pelicula> agregarPelicula(@RequestBody Pelicula pelicula) {
+        pelicula.setId((long) (this.listaPeliculas.size() + 1));
+        this.listaPeliculas.add(pelicula);
+        return new ResponseEntity<Pelicula>(pelicula, HttpStatus.ACCEPTED);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Pelicula> modificarPelicula(@RequestBody Pelicula pelicula,
+                                      @PathVariable Long id) {
+        for (Pelicula buscada :
+                this.listaPeliculas) {
+            if (buscada.getId() == id) {
+                buscada.setTitulo(pelicula.getTitulo());
+                buscada.setGenero(pelicula.getGenero());
+                buscada.setCalificacion(pelicula.getCalificacion());
+                buscada.setFechaCreacion(pelicula.getFechaCreacion());
+                return new ResponseEntity<Pelicula>(buscada, HttpStatus.ACCEPTED);
+            }
+        }
+        return new ResponseEntity<>(null, HttpStatus.ACCEPTED);
     }
 }
